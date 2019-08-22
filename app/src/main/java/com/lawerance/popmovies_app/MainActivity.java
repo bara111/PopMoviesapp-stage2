@@ -30,6 +30,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final String SCROLL_POSITION = "SCROLL_POSITION";
 
     private static final String MOVIES = "SAVE_MOVIES";
     private static final String PAGE_NUMBER = "PAGE_NUMBER";
@@ -46,8 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean popular = false;
     private boolean isLoading = false;
-    private boolean isLastPage = false;
-    private int TOTAL_PAGES = 5;
+    private int Position;
     private int mCurrentPage = PAGE_START;
     private GridLayoutManager gridLayoutManager;
     private MoviesService movieService;
@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             loadFirstPage_TopRated();
         } else {
+
             progressBar.setVisibility(View.GONE);
             popular = savedInstanceState.getBoolean(MOVIE_SORTING);
             mCurrentPage = savedInstanceState.getInt(PAGE_NUMBER);
@@ -147,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
             adapter.addAll(movies);
+            ((GridLayoutManager) mRecycleView.getLayoutManager()).scrollToPositionWithOffset(Position,0);
+
         }
 
 
@@ -352,6 +355,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putParcelableArrayList(MOVIES, adapter.getMovies());
         outState.putInt(PAGE_NUMBER, mCurrentPage);
         outState.putBoolean(MOVIE_SORTING, popular);
-
+        Position = ((GridLayoutManager)mRecycleView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        outState.putInt(SCROLL_POSITION,Position);
     }
 }

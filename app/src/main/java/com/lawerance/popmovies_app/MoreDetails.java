@@ -28,6 +28,9 @@ import com.bumptech.glide.Glide;
 
 //import com.lawerance.popmovies_app.Database_Room.MovieViewModel;
 import com.lawerance.popmovies_app.MoviesAPI.Result;
+import com.lawerance.popmovies_app.MoviesAPI.comment;
+import com.lawerance.popmovies_app.MoviesAPI.reviewsResponse;
+import com.lawerance.popmovies_app.MoviesAPI.reviewsService;
 import com.lawerance.popmovies_app.MoviesAPI.trailerService;
 import com.lawerance.popmovies_app.MoviesAPI.trailersResponse;
 import com.lawerance.popmovies_app.MoviesAPI.videos;
@@ -49,9 +52,16 @@ public class MoreDetails extends AppCompatActivity {
     private TextView mTitle, mOriginalLanguage, mReleaseDate, mVoteAverage, mOverview, trailerText;
     private final String url = "https://www.youtube.com/watch?v=";
     private ArrayList<videos> trailers;
+    private ArrayList<comment> comments;
+    private RecyclerView recyclerViewComments;
+    private LinearLayoutManager linearLayoutManagerReviews;
+    private comment comment;
+    private reviewsAdapter reviewsAdapter;
+
     private RecyclerView recyclerViewTrailers;
-    private LinearLayoutManager linearLayoutManager;
+    private LinearLayoutManager linearLayoutManagerTrailers;
     private Result result;
+
     private MenuItem mItem;
     private MovieRoomDB movieRoomDB;
     private boolean MoviedFounded;
@@ -62,7 +72,7 @@ public class MoreDetails extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more_details);
-
+        recyclerViewComments=findViewById(R.id.Reviews_recycler);
         trailerText = findViewById(R.id.Trailers);
         recyclerViewTrailers = findViewById(R.id.Trailers_recycler);
         movieRoomDB = MovieRoomDB.getInstance(this);
@@ -91,26 +101,26 @@ public class MoreDetails extends AppCompatActivity {
 
         Glide
                 .with(this)
-                .load("https://image.tmdb.org/t/p/original" +PosterPath)
+                .load("https://image.tmdb.org/t/p/original" + PosterPath)
                 .into(mPosterimageView);
         Glide
                 .with(this)
-                .load("https://image.tmdb.org/t/p/original" +BackdropPath)
+                .load("https://image.tmdb.org/t/p/original" + BackdropPath)
                 .into(mBackdropimageView);
 
 
-        Retrofit retrofit = new Retrofit.Builder()
+        Retrofit retrofitTrailers = new Retrofit.Builder()
                 .baseUrl("https://api.themoviedb.org/3/movie/" + result.getId() + "/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        trailerService trailersService = retrofit.create(trailerService.class);
+        trailerService trailersService = retrofitTrailers.create(trailerService.class);
         trailersService.get_trailers(MOVIE_API_KEY).enqueue(new Callback<trailersResponse>() {
             @Override
             public void onResponse(Call<trailersResponse> call, Response<trailersResponse> response) {
                 trailers = response.body().getResults();
 
-                linearLayoutManager = new LinearLayoutManager(getApplicationContext(), RecyclerView.HORIZONTAL, false);
-                recyclerViewTrailers.setLayoutManager(linearLayoutManager);
+                linearLayoutManagerTrailers = new LinearLayoutManager(getApplicationContext(), RecyclerView.HORIZONTAL, false);
+                recyclerViewTrailers.setLayoutManager(linearLayoutManagerTrailers);
                 trailerAdapter = new TrailerAdapter(getApplicationContext());
                 recyclerViewTrailers.setAdapter(trailerAdapter);
                 trailerAdapter.addAll(trailers);
@@ -123,9 +133,29 @@ public class MoreDetails extends AppCompatActivity {
 
             }
         });
+        Retrofit retrofitReviews = new Retrofit.Builder()
+                .baseUrl("https://api.themoviedb.org/3/movie/" + result.getId() + "/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        reviewsService reviewsService = retrofitReviews.create(reviewsService.class);
+        reviewsService.get_reviews(MOVIE_API_KEY).enqueue(new Callback<reviewsResponse>() {
+            @Override
+            public void onResponse(Call<reviewsResponse> call, Response<reviewsResponse> response) {
+                comments = response.body().getResults();
 
+                linearLayoutManagerReviews = new LinearLayoutManager(getApplicationContext(), RecyclerView.VERTICAL, false);
+                recyclerViewComments.setLayoutManager(linearLayoutManagerReviews);
+                reviewsAdapter = new reviewsAdapter(getApplicationContext());
+                recyclerViewComments.setAdapter(reviewsAdapter);
+                reviewsAdapter.addAll(comments);
 
+            }
 
+            @Override
+            public void onFailure(Call<reviewsResponse> call, Throwable t) {
+
+            }
+        });
 
 
         recyclerViewTrailers.addOnItemTouchListener(

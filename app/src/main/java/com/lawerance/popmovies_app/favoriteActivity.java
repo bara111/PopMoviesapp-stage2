@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,6 +19,7 @@ import android.widget.ProgressBar;
 
 import com.lawerance.popmovies_app.MoviesAPI.MoviesService;
 import com.lawerance.popmovies_app.MoviesAPI.Result;
+import com.lawerance.popmovies_app.database.FavMovieViewModel;
 import com.lawerance.popmovies_app.database.MovieRoomDB;
 
 import java.util.ArrayList;
@@ -45,20 +47,8 @@ public class favoriteActivity extends AppCompatActivity {
         gridLayoutManager = new GridLayoutManager(getApplicationContext(), 3);
         mRecycleView.setLayoutManager(gridLayoutManager);
         mRecycleView.setAdapter(adapter);
-        LiveData<List<Result>> movies = movieRoomDB.movieDao().loadMovies();
-        movies.observe(this, new Observer<List<Result>>() {
-            @Override
-            public void onChanged(@Nullable List<Result> movies) {
-                for (int i = 0; i < movies.size(); i++) {
-                    mMovies = new ArrayList<>();
-                    adapter.add(movies.get(i));
+        setupViewModel();
 
-                }
-
-
-
-            }
-        });
         mRecycleView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, mRecycleView, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
@@ -89,6 +79,18 @@ public class favoriteActivity extends AppCompatActivity {
         super.onRestart();
         finish();
         startActivity(getIntent());
+    }
+    private void setupViewModel() {
+        FavMovieViewModel viewModel = ViewModelProviders.of(this).get(FavMovieViewModel.class);
+        viewModel.getResultLiveData().observe(this, new Observer<List<Result>>() {
+            @Override
+            public void onChanged(@Nullable List<Result> movies) {
+                for (int i = 0; i < movies.size(); i++) {
+                    mMovies = new ArrayList<>();
+                    adapter.add(movies.get(i));
+
+                }            }
+        });
     }
 
 
